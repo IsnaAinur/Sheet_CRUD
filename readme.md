@@ -124,7 +124,9 @@ http://localhost/Sheet_CRUD
 
 ## Preview
 
-![alt text](image.png)
+## Screenshot
+
+![Dashboard](screenshots/dashboard.png)
 
 ## Learning Objectives
 
