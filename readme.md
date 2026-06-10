@@ -39,7 +39,7 @@ Spreadsheet menggunakan 3 kolom utama:
 
 | Name     | Email                                   | Status |
 | -------- | --------------------------------------- | ------ |
-| example | [example@gmail.com](mailto:john@gmail.com) | Active |
+| example | [example@gmail.com] | Active |
 
 ## Requirements
 
