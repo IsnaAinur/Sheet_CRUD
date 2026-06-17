@@ -310,6 +310,32 @@ function filterSheetRows(array $rows, string $search, string $status): array
     })); 
 } 
 
+// Fungsi Sorting tepat di bawah filterSheetRows()
+function sortSheetRows(array $rows, string $sortBy, string $sortDirection): array
+{
+    usort($rows, static function (array $left, array $right) use ($sortBy, $sortDirection): int {
+        $leftValue = match ($sortBy) {
+            'id' => (int) ($left['id'] ?? 0),
+            'email' => strtolower((string) ($left['email'] ?? '')),
+            'status' => strtolower((string) ($left['status'] ?? '')),
+            default => strtolower((string) ($left['name'] ?? '')),
+        };
+
+        $rightValue = match ($sortBy) {
+            'id' => (int) ($right['id'] ?? 0),
+            'email' => strtolower((string) ($right['email'] ?? '')),
+            'status' => strtolower((string) ($right['status'] ?? '')),
+            default => strtolower((string) ($right['name'] ?? '')),
+        };
+
+        $result = $leftValue <=> $rightValue;
+
+        return $sortDirection === 'desc' ? -$result : $result;
+    });
+
+    return $rows;
+}
+
 function exportRowsAsCsv(array $rows): never 
 { 
     header('Content-Type: text/csv; charset=UTF-8'); 
@@ -343,6 +369,20 @@ $statusFilter = trim((string) ($_GET['status'] ?? 'all'));
 $allowedStatuses = ['all', 'active', 'inactive', 'pending']; 
 if (!in_array($statusFilter, $allowedStatuses, true)) { 
     $statusFilter = 'all'; 
+}
+
+// Variabel Sorting dan Validasi Input Sorting
+$sortBy = trim((string) ($_GET['sort_by'] ?? 'name'));
+$sortDirection = trim((string) ($_GET['sort_dir'] ?? 'asc'));
+$allowedSortFields = ['id', 'name', 'email', 'status'];
+$allowedSortDirections = ['asc', 'desc'];
+
+if (!in_array($sortBy, $allowedSortFields, true)) {
+    $sortBy = 'name';
+}
+
+if (!in_array($sortDirection, $allowedSortDirections, true)) {
+    $sortDirection = 'asc';
 }
 
 try {
@@ -383,6 +423,10 @@ try {
 try {
     $items = fetchSheetRows(); 
     $filteredItems = filterSheetRows($items, $searchQuery, $statusFilter); 
+    
+    // Sorting Setelah Filter
+    $filteredItems = sortSheetRows($filteredItems, $sortBy, $sortDirection);
+
     if (isset($_GET['export']) && $_GET['export'] === 'csv') { 
         exportRowsAsCsv($filteredItems); 
     } 
@@ -419,8 +463,10 @@ $statusGroups = count(array_unique(array_map(static fn (array $item): string =>
 $heroItem = $detailItem ?? ($items[0] ?? null); 
 $performers = array_slice($filteredItems, 0, 3); 
 $renderStamp = date('Y-m-d H:i:s'); 
+
+// Ubah URL Export CSV agar mendukung parameter sorting
 $exportUrl = 'index.php?export=csv&search=' . urlencode($searchQuery) . '&status=' . 
-    urlencode($statusFilter); 
+    urlencode($statusFilter) . '&sort_by=' . urlencode($sortBy) . '&sort_dir=' . urlencode($sortDirection); 
 
 ?>
 <!DOCTYPE html>
@@ -636,13 +682,13 @@ $exportUrl = 'index.php?export=csv&search=' . urlencode($searchQuery) . '&status
                                 </div>
                             </div>
                             
-                            <form method="get" class="form" style="display: flex; gap: 16px; flex-wrap: wrap; background: rgba(0,0,0,0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
-                                <div style="flex: 1; min-width: 200px;">
+                            <form method="get" class="form filter-grid" style="background: rgba(0,0,0,0.02); padding: 12px; border-radius: 8px; border: 1px solid var(--border);">
+                                <div style="min-width: 200px;">
                                     <label>Cari data</label>
                                     <input type="text" name="search" value="<?= h($searchQuery) ?>" placeholder="Kata kunci...">
                                 </div>
 
-                                <div style="flex: 1; min-width: 150px;">
+                                <div style="min-width: 150px;">
                                     <label>Filter status</label>
                                     <select name="status">
                                         <option value="all" <?= $statusFilter === 'all' ? 'selected' : '' ?>>Semua Status</option>
@@ -657,8 +703,25 @@ $exportUrl = 'index.php?export=csv&search=' . urlencode($searchQuery) . '&status
                                     </select>
                                 </div>
 
-                                <div style="display: flex; align-items: flex-end;">
-                                    <button type="submit" class="primary">Terapkan</button>
+                                <div>
+                                    <label for="sort_by">Urutkan berdasarkan</label>
+                                    <select id="sort_by" name="sort_by">
+                                        <option value="name" <?= $sortBy === 'name' ? 'selected' : '' ?>>Name</option>
+                                        <option value="email" <?= $sortBy === 'email' ? 'selected' : '' ?>>Email</option>
+                                        <option value="status" <?= $sortBy === 'status' ? 'selected' : '' ?>>Status</option>
+                                        <option value="id" <?= $sortBy === 'id' ? 'selected' : '' ?>>ID</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label for="sort_dir">Arah urutan</label>
+                                    <select id="sort_dir" name="sort_dir">
+                                        <option value="asc" <?= $sortDirection === 'asc' ? 'selected' : '' ?>>A-Z / Kecil-Besar</option>
+                                        <option value="desc" <?= $sortDirection === 'desc' ? 'selected' : '' ?>>Z-A / Besar-Kecil</option>
+                                    </select>
+                                </div>
+
+                                <div style="display: flex;">
+                                    <button type="submit" class="primary" style="width: 100%;">Terapkan</button>
                                 </div>
                             </form>
                         </div>

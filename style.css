@@ -899,12 +899,12 @@ button:hover,
     margin-top: 18px; 
 } 
  
-.filter-grid { 
-    display: grid; 
-    grid-template-columns: minmax(260px, 1.6fr) minmax(180px, 0.8fr) auto; 
-    gap: 14px; 
-    align-items: end; 
-} 
+.filter-grid {
+    display: grid;
+    grid-template-columns: minmax(240px, 1.5fr) minmax(170px, 0.8fr) minmax(170px, 0.8fr) minmax(170px, 0.8fr) auto;
+    gap: 14px;
+    align-items: end;
+}
  
 .filter-submit { 
     display: flex; 
@@ -918,13 +918,15 @@ button:hover,
 }
 
 .table-wrap {
+    width: 100%;
     overflow-x: auto;
     margin-top: 18px;
+    display: block;
 }
 
 table {
     width: 100%;
-    min-width: 780px;
+    min-width: 1000px;
     border-collapse: collapse;
 }
 
@@ -1018,7 +1020,6 @@ th {
         justify-content: start;
     }
 
-    /* INTEGRASI RESPONSIVE FILTER DAN ACTIONS (LANGKAH 13)*/
     .table-actions, 
     .topbar,
     .topbar-left,
@@ -1069,5 +1070,36 @@ th {
 
     .rate-score strong {
         font-size: 4.2rem;
+    }
+}
+
+.filter-form {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -webkit-overflow-scrolling: touch;
+}
+
+.filter-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+    gap: 14px;
+    align-items: end;
+}
+
+.filter-grid div:first-child {
+    grid-column: span 2;
+}
+
+.filter-submit {
+    min-width: 120px;
+}
+
+@media (max-width: 1200px) {
+    .filter-grid {
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)) !important;
+    }
+    .filter-grid div:first-child {
+        grid-column: span 1;
     }
 }
